@@ -109,9 +109,8 @@ document.addEventListener('DOMContentLoaded', function() { // Создаем о�
     // Modal window
 
     const modalTrigger = document.querySelectorAll('[data-modal]'), // переменная для кнопок
-          modal = document.querySelector('.modal'), // переменная для модального окна
-          modalCloseBtn = document.querySelector('[data-close]'); // переменная для закрытия модального окна
-    
+          modal = document.querySelector('.modal'); // переменная для модального окна
+        
 
     modalTrigger.forEach(btn => { // перебираем все кнопки
         btn.addEventListener('click', openModal); // добавляем обр. события на все кнопки
@@ -129,10 +128,9 @@ document.addEventListener('DOMContentLoaded', function() { // Создаем о�
         modal.classList.remove('show');
         document.body.style.overflow = ''; // разрешаем прокрутку страницы
     }
-    modalCloseBtn.addEventListener('click', closeModal); // закрываем открытое мод. окно
 
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) { // проверка на клик за пределами мод. окна
+        if (e.target === modal || e.target.getAttribute('data-close') == '') { // проверка на клик за пределами мод. окна
             closeModal(); // закрываем мод. окно
         }
     });
@@ -143,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() { // Создаем о�
         }
     });
 
-    const modalTimerId = setTimeout(openModal, 5000); // таймер, мод. окно открывается каждые 5с
+    const modalTimerId = setTimeout(openModal, 50000); // таймер, мод. окно открывается каждые 5с
 
     function showModalByScroll() { // ф-ия по открытию мод. окна при прокрутке вниз
         if (window.scrollY + document.documentElement.clientHeight >= document. 
@@ -236,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() { // Создаем о�
     const forms = document.querySelectorAll('form');
 
     const message = {
-        loading: 'Загрузка...',
+        loading: 'img/form/spinner.svg',
         success: 'Спасибо! Скоро мы с вами свяжемся',
         failure: 'Что-то пошло не так...'
     };
@@ -249,10 +247,13 @@ document.addEventListener('DOMContentLoaded', function() { // Создаем о�
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            let statusMessage = document.createElement('div'); // создания div для отбражения
-            statusMessage.classList.add('status'); // добавляем класс для отображения
-            statusMessage.textContent = message.loading; // отправляем сообщение при загрузке
-            form.appendChild(statusMessage); // добавляем сообщение к форме
+            let statusMessage = document.createElement('img'); // создания div для отбражения
+            statusMessage.src = message.loading;
+            statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            form.insertAdjacentElement('afterend', statusMessage);
         
             const request = new XMLHttpRequest(); // создаем конструктор request для отправки данных
             request.open('POST', 'server.php'); // Настраиваем запрос: метод POST и url к серверу
@@ -271,18 +272,38 @@ document.addEventListener('DOMContentLoaded', function() { // Создаем о�
             request.addEventListener('load', () => { // Обрабатываем запрос при отправки данных
                 if (request.status === 200) {
                     console.log(request.response);
-                    statusMessage.textContent = message.success;
+                    showThanksModal(message.success) ;
                     form.reset();
-                    setTimeout(() => {
-                        statusMessage.remove();
-                    }, 2000);
+                    statusMessage.remove();
                 } else {
-                    statusMessage.textContent = message.failure;
+                    showThanksModal(message.failure);
                 }
             });
         });
     }
 
+    function showThanksModal(message) {
+        const prevModalDialog = document.querySelector('.modal__dialog');
 
+        prevModalDialog.classList.add('hide'); // скрываем окно
+        openModal();
+
+        const thanksModal = document.createElement('div');
+        thanksModal.classList.add('modal__dialog');
+        thanksModal.innerHTML = `
+            <div class="modal__content">
+                <div class="modal__close" data-close>×</div>
+                <div class="modal__title">${message}</div>
+            </div>
+        `;
+
+        document.querySelector('.modal').append(thanksModal);
+        setTimeout(() => {
+            thanksModal.remove();
+            prevModalDialog.classList.add('show');
+            prevModalDialog.classList.remove('hide');
+            closeModal();
+        }, 1000);
+    }
 });
 
