@@ -1,6 +1,5 @@
 // Timer
-function timer() {
-    const deadline = '2023-03-16';
+function timer(id, deadline) {
 
     function getTimeRemaining(endtime) {
         let days, hours, minutes, seconds;
@@ -58,7 +57,7 @@ function timer() {
         }
     }
 
-    setClock('.timer', deadline);
+    setClock(id, deadline);
 }
 
-module.exports = timer;
+export default timer;
